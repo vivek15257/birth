@@ -409,7 +409,7 @@ export default function App() {
         <div className="flex items-center space-x-2">
           <Sparkles className="w-5 h-5 text-gold-400 animate-pulse" />
           <span className="font-display font-semibold tracking-wider text-sm uppercase text-gradient-gold">
-            A Special Tribute
+            Celebrating You Today
           </span>
         </div>
         <button
