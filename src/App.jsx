@@ -451,11 +451,7 @@ export default function App() {
       title: 'Out and About',
       desc: 'Exploring new places and sharing wonderful days.'
     },
-    {
-      src: '/images/shravani_3.jpg',
-      title: 'The Best Company',
-      desc: 'Fun times surrounded by friends who inspire and bring out the best in us.'
-    },
+
     {
       src: '/images/shravani_4.jpg',
       title: 'Shared Journeys',
