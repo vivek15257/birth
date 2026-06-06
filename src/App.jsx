@@ -431,7 +431,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-36 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24 md:space-y-36 relative z-10">
         
         {/* 1. HERO SECTION */}
         <section className="min-h-[80vh] flex flex-col justify-center items-center text-center relative pt-8 pb-16">
@@ -723,7 +723,7 @@ export default function App() {
 
           <div className="relative max-w-4xl mx-auto py-8">
             {/* Timeline Line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-[2px] timeline-line pointer-events-none" />
+            <div className="absolute left-[24px] md:left-1/2 transform md:-translate-x-1/2 top-0 bottom-0 w-[2px] timeline-line pointer-events-none" />
 
             <div className="space-y-12">
               {timelinePoints.map((point, index) => {
@@ -736,13 +736,13 @@ export default function App() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 0.6 }}
-                    className={`flex items-center justify-between w-full group ${isEven ? 'flex-row-reverse' : ''}`}
+                    className={`relative flex items-center justify-between w-full group ${isEven ? 'md:flex-row-reverse' : ''}`}
                   >
                     {/* Empty block for layout alignment */}
                     <div className="hidden md:block w-5/12" />
 
                     {/* Timeline Node Icon */}
-                    <div className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#1b0f38] border-2 border-gold-500/80 shadow-[0_0_15px_rgba(221,160,21,0.4)] transition-all duration-500 group-hover:scale-125 group-hover:border-gold-400 group-hover:shadow-[0_0_25px_rgba(221,160,21,0.8)]">
+                    <div className="absolute left-[24px] md:static transform -translate-x-1/2 md:translate-x-0 z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#1b0f38] border-2 border-gold-500/80 shadow-[0_0_15px_rgba(221,160,21,0.4)] transition-all duration-500 group-hover:scale-125 group-hover:border-gold-400 group-hover:shadow-[0_0_25px_rgba(221,160,21,0.8)]">
                       <IconComponent className="w-5 h-5 text-gold-400 group-hover:text-gold-200 transition-colors duration-300" />
                     </div>
 
@@ -750,13 +750,15 @@ export default function App() {
                     <motion.div 
                       whileHover={{ scale: 1.03, y: -4 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className="w-11/12 md:w-5/12 glass-panel rounded-2xl p-6 border border-white/5 shadow-lg hover:border-gold-500/30 hover:shadow-[0_8px_30px_rgba(221,160,21,0.15)] transition-all duration-300 cursor-default"
+                      className="w-full pl-[60px] md:pl-0 md:w-5/12"
                     >
-                      <span className="inline-block text-xs font-bold tracking-widest text-gold-400 uppercase mb-2">
-                        {point.year}
-                      </span>
-                      <h3 className="text-xl font-bold font-display text-slate-100 mb-2">{point.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">{point.desc}</p>
+                      <div className="glass-panel rounded-2xl p-6 border border-white/5 shadow-lg hover:border-gold-500/30 hover:shadow-[0_8px_30px_rgba(221,160,21,0.15)] transition-all duration-300 cursor-default">
+                        <span className="inline-block text-xs font-bold tracking-widest text-gold-400 uppercase mb-2">
+                          {point.year}
+                        </span>
+                        <h3 className="text-xl font-bold font-display text-slate-100 mb-2">{point.title}</h3>
+                        <p className="text-slate-400 text-sm leading-relaxed">{point.desc}</p>
+                      </div>
                     </motion.div>
                   </motion.div>
                 );
