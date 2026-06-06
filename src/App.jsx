@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { 
   Award, 
@@ -230,9 +230,25 @@ const ParticleBackground = () => {
       }
     }
 
+    let offsetX = 0;
+    let offsetY = 0;
+
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.shadowBlur = 0
+      
+      if (mouse.x !== null && mouse.y !== null) {
+        const targetX = (mouse.x - canvas.width / 2) * -0.04
+        const targetY = (mouse.y - canvas.height / 2) * -0.04
+        offsetX += (targetX - offsetX) * 0.1
+        offsetY += (targetY - offsetY) * 0.1
+      } else {
+        offsetX += (0 - offsetX) * 0.1
+        offsetY += (0 - offsetY) * 0.1
+      }
+      
+      ctx.save()
+      ctx.translate(offsetX, offsetY)
       
       particles.forEach(p => {
         p.update()
@@ -240,6 +256,7 @@ const ParticleBackground = () => {
       })
       
       drawLines()
+      ctx.restore()
       animationFrameId = requestAnimationFrame(animate)
     }
 
@@ -269,6 +286,85 @@ const ParticleBackground = () => {
   }, [])
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />
+}
+
+const MagneticButton = ({ children, className, onClick }) => {
+  const ref = useRef(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const springConfig = { damping: 15, stiffness: 150, mass: 0.1 }
+  const springX = useSpring(x, springConfig)
+  const springY = useSpring(y, springConfig)
+
+  const handleMouse = (e) => {
+    if (!ref.current) return
+    const { clientX, clientY } = e
+    const { height, width, left, top } = ref.current.getBoundingClientRect()
+    const middleX = clientX - (left + width / 2)
+    const middleY = clientY - (top + height / 2)
+    x.set(middleX * 0.3)
+    y.set(middleY * 0.3)
+  }
+
+  const reset = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ x: springX, y: springY }}
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+const TiltCard = ({ children, className }) => {
+  const ref = useRef(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 })
+  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 })
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"])
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"])
+
+  const handleMouseMove = (e) => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const width = rect.width
+    const height = rect.height
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const xPct = mouseX / width - 0.5
+    const yPct = mouseY / height - 0.5
+    x.set(xPct)
+    y.set(yPct)
+  }
+
+  const handleMouseLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className={`w-full h-full`}
+    >
+      <div className={`w-full h-full transform-gpu ${className}`} style={{ transform: "translateZ(30px)" }}>
+        {children}
+      </div>
+    </motion.div>
+  )
 }
 
 export default function App() {
@@ -452,26 +548,27 @@ export default function App() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.2 } }
+            }}
             className="space-y-6 max-w-4xl"
           >
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass-panel border border-gold-500/10 text-gold-300 text-xs font-semibold tracking-wide uppercase shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } } }} className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass-panel border border-gold-500/10 text-gold-300 text-xs font-semibold tracking-wide uppercase shadow-sm">
+              <Award className="w-4 h-4 text-gold-400" />
               <span>Celebrating a Special Friendship</span>
-            </div>
+            </motion.div>
+            
+            <motion.h1 variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } } }} className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-tight">
+              Happy Birthday, <br />
+              <span className="text-gradient-gold block mt-2 animate-float-slow">Shravani</span>
+            </motion.h1>
 
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-tight">
-              <span className="block text-slate-100">Happy Birthday</span>
-              <span className="block mt-2 text-gradient-gold font-display font-extrabold pb-3">
-                Shravani 🎉
-              </span>
-            </h1>
-
-            <p className="text-lg sm:text-2xl text-slate-300 font-light max-w-2xl mx-auto tracking-wide">
+            <motion.p variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } } }} className="text-lg sm:text-2xl text-slate-300 font-light max-w-2xl mx-auto tracking-wide">
               "To an Incredible Friend Who Inspires Me Every Day"
-            </p>
+            </motion.p>
           </motion.div>
 
           {/* Interactive Birthday Cake Illustration */}
@@ -605,13 +702,15 @@ export default function App() {
           </motion.div>
 
           <div className="mt-12">
-            <button
+            <MagneticButton
               onClick={triggerPremiumConfetti}
-              className="px-6 py-3 rounded-full bg-gradient-gold text-slate-950 font-bold hover:shadow-[0_0_25px_rgba(221,160,21,0.5)] transform hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 flex items-center space-x-2 cursor-pointer"
+              className="inline-block"
             >
-              <Gift className="w-5 h-5 text-slate-950" />
-              <span>Celebrate with Confetti!</span>
-            </button>
+              <div className="px-6 py-3 rounded-full bg-gradient-gold text-slate-950 font-bold hover:shadow-[0_0_25px_rgba(221,160,21,0.5)] transition-all duration-300 flex items-center space-x-2 cursor-pointer">
+                <Gift className="w-5 h-5 text-slate-950" />
+                <span>Celebrate with Confetti!</span>
+              </div>
+            </MagneticButton>
           </div>
         </section>
 
@@ -654,58 +753,55 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Leadership Card */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.05)]"
             >
-              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-                <Award className="w-6 h-6 text-rose-400" />
-              </div>
-              <h3 className="text-xl font-bold font-display text-slate-100">Leadership</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Leading not by command, but by example. You inspire confidence and guide others with absolute integrity, showing us how to achieve greatness together.
-              </p>
+              <TiltCard className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.15)]">
+                <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                  <Award className="w-6 h-6 text-rose-400" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-slate-100">Leadership</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Leading not by command, but by example. You inspire confidence and guide others with absolute integrity, showing us how to achieve greatness together.
+                </p>
+              </TiltCard>
             </motion.div>
 
-            {/* Hard Work Card */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.05)]"
             >
-              <div className="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center">
-                <Lightbulb className="w-6 h-6 text-gold-400" />
-              </div>
-              <h3 className="text-xl font-bold font-display text-slate-100">Hard Work</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Your strong work ethic, relentless dedication, and focus serve as a daily blueprint for diligence. You prove that excellence is a habit, not a coincidence.
-              </p>
+              <TiltCard className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.15)]">
+                <div className="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center">
+                  <Lightbulb className="w-6 h-6 text-gold-400" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-slate-100">Hard Work</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Your strong work ethic, relentless dedication, and focus serve as a daily blueprint for diligence. You prove that excellence is a habit, not a coincidence.
+                </p>
+              </TiltCard>
             </motion.div>
 
-            {/* Kindness Card */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
-              className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.05)]"
             >
-              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-                <Heart className="w-6 h-6 text-rose-400" />
-              </div>
-              <h3 className="text-xl font-bold font-display text-slate-100">Kindness</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Beyond accomplishments, your kindness, positive attitude, and willing empathy create a welcoming atmosphere where everyone feels seen, respected, and motivated.
-              </p>
+              <TiltCard className="glass-panel rounded-2xl p-8 border border-white/5 flex flex-col space-y-4 hover:border-gold-500/30 transition-all duration-300 glow-rose/10 hover:shadow-[0_8px_30px_rgb(221,160,21,0.15)]">
+                <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-rose-400" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-slate-100">Kindness</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Beyond accomplishments, your kindness, positive attitude, and willing empathy create a welcoming atmosphere where everyone feels seen, respected, and motivated.
+                </p>
+              </TiltCard>
             </motion.div>
           </div>
         </section>
