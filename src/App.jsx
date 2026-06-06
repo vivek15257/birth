@@ -15,7 +15,8 @@ import {
   Maximize2,
   Gift,
   Compass,
-  ArrowRight
+  ArrowRight,
+  Cake
 } from 'lucide-react'
 
 // Web Audio API Synthesizer for elegant background piano melody
@@ -407,7 +408,7 @@ export default function App() {
       {/* Elegant Fixed Header / Controls */}
       <header className="sticky top-0 z-40 w-full px-6 py-4 flex items-center justify-between backdrop-blur-md border-b border-white/5 bg-[#03001e]/30">
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-gold-400 animate-pulse" />
+          <Cake className="w-5 h-5 text-gold-400 animate-pulse" />
           <span className="font-display font-semibold tracking-wider text-sm uppercase text-gradient-gold">
             Celebrating You Today
           </span>
